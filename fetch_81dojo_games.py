@@ -18,6 +18,7 @@ LOGIN_URL = 'https://system.81dojo.com/en/players/sign_in'
 SEARCH_URL = 'https://system.81dojo.com/en/kifus/search/form'
 REFERER_URL = 'https://81dojo.com'
 KIFU_URL = 'https://system.81dojo.com/api/v2/kifus/{}.json'
+KIFU_INSERT = 'INSERT INTO kifu("document") VALUES(\'{}\');'
 
 
 def parse_arguments():
@@ -110,9 +111,13 @@ def save_games(game_ids, game_dir, user_config):
             print('Saving game {}'.format(game_id))
 
             kifu_url = KIFU_URL.format(game_id)
-            with open(os.path.join(game_dir, os.path.basename(kifu_url)),
-                      'w') as f:
-                f.write(session.get(kifu_url).text + '\n')
+            name = os.path.basename(kifu_url)
+            kifu = session.get(kifu_url).text
+            sql = KIFU_INSERT.format(kifu.replace("'", "''"))
+            with open(os.path.join(game_dir, name), 'w') as f:
+                f.write(kifu + '\n')
+            with open(os.path.join(game_dir, name+'.sql'), 'w') as f:
+                f.write(sql + '\n')
 
     user_config['latest_game_id'] = str(max(game_ids))
 
